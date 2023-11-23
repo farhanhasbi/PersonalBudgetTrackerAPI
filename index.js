@@ -11,12 +11,21 @@ const router = require("./router/api.js");
 const incomeRouter = require("./router/income.js");
 const expenseRouter = require("./router/expense.js");
 const goalRouter = require("./router/goal.js");
+const redisClient = require("./config/redis.js");
+const RedisStore = require("connect-redis").default;
 
 app.use(cors());
+
+let redisStore = new RedisStore({
+  client: redisClient,
+  ttl: 86400,
+  prefix: "user-session",
+});
 
 // Session and Passport Middleware
 app.use(
   session({
+    store: redisStore,
     secret: "your-secret-key",
     resave: false,
     saveUninitialized: false,
@@ -39,4 +48,5 @@ app.use("/goal", goalRouter);
 
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
+  redisClient.connect();
 });
